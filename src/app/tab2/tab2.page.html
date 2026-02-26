@@ -1,17 +1,22 @@
-<ion-header [translucent]="true">
+<ion-header>
   <ion-toolbar>
-    <ion-title>
-      Tab 2
-    </ion-title>
+    <ion-title>Biblioteca Batatinha</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Tab 2</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content class="ion-padding">
 
-  <app-explore-container name="Tab 2 page"></app-explore-container>
+  <ion-list *ngIf="livros.length > 0">
+    <ion-item *ngFor="let livro of livros">
+      <ion-label>
+        <h2>{{ livro.titulo }}</h2>
+        <p>{{ livro.autor }}</p>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+
+  <div *ngIf="livros.length === 0" style="text-align:center; margin-top: 40px;">
+    Nenhum livro cadastrado 📚
+  </div>
+
 </ion-content>
