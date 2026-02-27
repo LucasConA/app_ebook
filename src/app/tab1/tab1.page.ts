@@ -18,17 +18,14 @@ export class Tab1Page {
   constructor(private bookService: BookService) {}
 
   adicionarLivro() {
+  if (!this.titulo || !this.autor) return;
 
-    if (!this.titulo || !this.autor) return;
+  this.bookService.adicionar({
+    titulo: this.titulo,
+    autor: this.autor
+  });
 
-    this.bookService.adicionar({
-      titulo: this.titulo,
-      autor: this.autor
-    });
-
-    this.titulo = '';
-    this.autor = '';
-
-    alert('Livro adicionado!');
-  }
+  this.titulo = '';
+  this.autor = '';
+}
 }
