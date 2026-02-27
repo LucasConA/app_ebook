@@ -6,17 +6,21 @@
 
 <ion-content class="ion-padding">
 
-  <ion-list *ngIf="livros.length > 0">
-    <ion-item *ngFor="let livro of livros">
-      <ion-label>
-        <h2>{{ livro.titulo }}</h2>
-        <p>{{ livro.autor }}</p>
-      </ion-label>
-    </ion-item>
-  </ion-list>
-
   <div *ngIf="livros.length === 0" style="text-align:center; margin-top: 40px;">
     Nenhum livro cadastrado
   </div>
+
+  <ion-list>
+  <ion-item *ngFor="let livro of livros; let i = index">
+    <ion-label>
+      <h2>{{ livro.titulo }}</h2>
+      <p>{{ livro.autor }}</p>
+    </ion-label>
+
+    <ion-button color="danger" (click)="removerLivro(i)">
+      Deletar
+    </ion-button>
+  </ion-item>
+</ion-list>
 
 </ion-content>

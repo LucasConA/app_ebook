@@ -14,8 +14,7 @@ bootstrapApplication(AppComponent, {
     provideRouter(routes, withPreloading(PreloadAllModules)),
     importProvidersFrom(
       IonicStorageModule.forRoot({
-        name: '__booksdb',
-        driverOrder: ['indexeddb', 'localstorage']
+        name: '__booksdb'
       })
     )
   ],

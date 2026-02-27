@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { BookService, Livro } from '../service/book';
@@ -9,13 +9,19 @@ import { BookService, Livro } from '../service/book';
   imports: [IonicModule, CommonModule],
   templateUrl: './tab2.page.html',
 })
-export class Tab2Page implements OnInit {
+export class Tab2Page {
 
   livros: Livro[] = [];
 
   constructor(private bookService: BookService) {}
 
-  ngOnInit() {
-    this.livros = this.bookService.listar();
+  async ionViewWillEnter() {
+    this.livros = await this.bookService.listar();
   }
+
+  async removerLivro(index: number) {
+  await this.bookService.remover(index);
+  this.livros = await this.bookService.listar();
 }
+}
+

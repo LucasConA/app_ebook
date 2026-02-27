@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { Storage } from '@ionic/storage-angular';
 
 export interface Livro {
   titulo: string;
@@ -10,30 +11,35 @@ export interface Livro {
 })
 export class BookService {
 
-  private livros: Livro[] = [];
+  private _storage!: Storage;
   private storageKey = 'biblioteca_batatinha';
+  private _initPromise: Promise<void>;
 
-  constructor() {
-    this.carregar();
+  constructor(private storage: Storage) {
+    this._initPromise = this.init();
   }
 
-  adicionar(livro: Livro) {
-    this.livros.push(livro);
-    this.salvar();
+  async init() {
+    this._storage = await this.storage.create();
   }
 
-  listar(): Livro[] {
-    return this.livros;
+  async adicionar(livro: Livro) {
+    await this._initPromise;
+
+    const livros = await this.listar();
+    livros.push(livro);
+    await this._storage.set(this.storageKey, livros);
   }
 
-  private salvar() {
-    localStorage.setItem(this.storageKey, JSON.stringify(this.livros));
+  async listar(): Promise<Livro[]> {
+    await this._initPromise;
+
+    return (await this._storage.get(this.storageKey)) || [];
   }
 
-  private carregar() {
-    const dados = localStorage.getItem(this.storageKey);
-    if (dados) {
-      this.livros = JSON.parse(dados);
-    }
-  }
+  async remover(index: number) {
+  const livros = await this.listar();
+  livros.splice(index, 1);
+  await this._storage.set(this.storageKey, livros);
+}
 }
