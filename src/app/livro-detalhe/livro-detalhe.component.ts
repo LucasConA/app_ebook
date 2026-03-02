@@ -17,7 +17,7 @@ export class LivroDetalheComponent implements OnInit {
   modoEdicao = false;
   livroEditando!: Livro;
 
-  // ✅ Campo auxiliar para edição das tags
+  //  Campo auxiliar para edição das tags
   tagsInput: string = '';
 
   constructor(
@@ -58,4 +58,19 @@ export class LivroDetalheComponent implements OnInit {
   dismiss() {
     this.modalCtrl.dismiss();
   }
+
+  onFileSelected(event: any) {
+  const file = event.target.files[0];
+
+  if (!file) return;
+
+  const reader = new FileReader();
+
+  reader.onload = () => {
+    // salva como base64
+    this.livroEditando.capa = reader.result as string;
+  };
+
+  reader.readAsDataURL(file);
+}
 }

@@ -17,39 +17,36 @@ import { trash } from 'ionicons/icons';
 export class Tab2Page {
 
   livros: Livro[] = [];
-  isModalOpen: boolean = false;
+
   constructor(
-  private bookService: BookService,
-  private modalCtrl: ModalController
-) {
-  addIcons({ trash });
-}
+    private bookService: BookService,
+    private modalCtrl: ModalController
+  ) {addIcons({trash})}
+  
+  
 
   async ionViewWillEnter() {
     this.livros = await this.bookService.listar();
   }
 
   async removerLivro(id: string) {
-  await this.bookService.remover(id);
-  this.livros = await this.bookService.listar();
-}
-
-async abrirDetalhes(livro: Livro) {
-  const modal = await this.modalCtrl.create({
-    component: LivroDetalheComponent,
-    componentProps: {
-      livro: livro
-    }
-  });
-
-  await modal.present();
-
-  const { data } = await modal.onWillDismiss();
-
-  if (data?.atualizado) {
+    await this.bookService.remover(id);
     this.livros = await this.bookService.listar();
   }
-}
-}
 
+  async abrirDetalhes(livro: Livro) {
+    const modal = await this.modalCtrl.create({
+      component: LivroDetalheComponent,
+      componentProps: { livro }
+    });
+
+    await modal.present();
+
+    const { data } = await modal.onWillDismiss();
+
+    if (data?.atualizado) {
+      this.livros = await this.bookService.listar();
+    }
+  }
+}
 

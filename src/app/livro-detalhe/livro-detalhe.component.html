@@ -82,6 +82,15 @@
       ></ion-input>
     </ion-item>
 
+    <ion-item>
+    <ion-label position="stacked">URL da Capa</ion-label>
+    <ion-input [(ngModel)]="livroEditando.capa"></ion-input>
+  </ion-item>
+
+  <div class="capa-wrapper" *ngIf="livroEditando.capa">
+    <img [src]="livroEditando.capa" class="capa-livro" />
+  </div>
+
     <ion-button expand="block" color="success" (click)="salvar()">
       Salvar
     </ion-button>
