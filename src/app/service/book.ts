@@ -2,8 +2,15 @@ import { Injectable } from '@angular/core';
 import { Storage } from '@ionic/storage-angular';
 
 export interface Livro {
+  id: string;
   titulo: string;
   autor: string;
+  idioma: string;
+  genero: string;
+  capa?: string;     // base64 da imagem
+  tags: string[];
+  link?: string;
+  criadoEm: Date;
 }
 
 @Injectable({
@@ -37,9 +44,13 @@ export class BookService {
     return (await this._storage.get(this.storageKey)) || [];
   }
 
-  async remover(index: number) {
+  async remover(id: string) {
   const livros = await this.listar();
-  livros.splice(index, 1);
-  await this._storage.set(this.storageKey, livros);
+  const novosLivros = livros.filter(l => l.id !== id);
+  await this._storage.set(this.storageKey, novosLivros);
 }
+
+  async atualizar(livro: Livro) {
+    // lógica para atualizar no storage
+  }
 }

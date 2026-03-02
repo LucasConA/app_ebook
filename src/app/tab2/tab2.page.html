@@ -1,26 +1,104 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-title>Biblioteca Batatinha</ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-grid>
+  <ion-row>
 
-<ion-content class="ion-padding">
+    <ion-col 
+      size="6" 
+      size-sm="4" 
+      size-md="3"
+      *ngFor="let livro of livros">
 
-  <div *ngIf="livros.length === 0" style="text-align:center; margin-top: 40px;">
-    Nenhum livro cadastrado
-  </div>
+      <div class="livro-container">
 
-  <ion-list>
-  <ion-item *ngFor="let livro of livros; let i = index">
-    <ion-label>
-      <h2>{{ livro.titulo }}</h2>
-      <p>{{ livro.autor }}</p>
-    </ion-label>
+        <ion-icon
+          name="trash"
+          class="delete-icon"
+          (click)="removerLivro(livro.id); $event.stopPropagation()">
+        </ion-icon>
 
-    <ion-button color="danger" (click)="removerLivro(i)">
-      Deletar
-    </ion-button>
-  </ion-item>
-</ion-list>
+        <div class="capa-wrapper" (click)="abrirDetalhes(livro)">
+          <img 
+            [src]="livro.capa || 'assets/placeholder-book.jpg'"
+            class="capa-livro"
+          />
+        </div>
 
-</ion-content>
+        <div class="titulo-livro">
+          {{ livro.titulo }}
+        </div>
+
+      </div>
+
+      <ion-modal [isOpen]="isModalOpen" (didDismiss)="isModalOpen = false">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>
+          {{ modoEdicao ? 'Editar Livro' : 'Detalhes do Livro' }}
+        </ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="isModalOpen = false">
+            Fechar
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content class="ion-padding">
+
+      <!-- VISUALIZAÇÃO -->
+      <div *ngIf="!modoEdicao">
+
+        <div class="capa-wrapper">
+          <img
+            *ngIf="livroSelecionado?.capa"
+            [src]="livroSelecionado.capa"
+            class="capa-livro"
+          />
+        </div>
+
+        <h2>{{ livroSelecionado?.titulo }}</h2>
+        <p><strong>Autor:</strong> {{ livroSelecionado?.autor }}</p>
+        <p><strong>Ano:</strong> {{ livroSelecionado?.ano }}</p>
+
+        <ion-button expand="block" (click)="modoEdicao = true">
+          Editar
+        </ion-button>
+
+      </div>
+
+      <!-- MODO EDIÇÃO -->
+      <div *ngIf="modoEdicao">
+
+        <ion-item>
+          <ion-label position="stacked">Título</ion-label>
+          <ion-input [(ngModel)]="livroSelecionado.titulo"></ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="stacked">Autor</ion-label>
+          <ion-input [(ngModel)]="livroSelecionado.autor"></ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="stacked">Ano</ion-label>
+          <ion-input type="number" [(ngModel)]="livroSelecionado.ano"></ion-input>
+        </ion-item>
+
+        <ion-button expand="block" color="success" (click)="salvarEdicao()">
+          Salvar
+        </ion-button>
+
+        <ion-button expand="block" fill="outline" (click)="modoEdicao = false">
+          Cancelar
+        </ion-button>
+
+      </div>
+
+    </ion-content>
+  </ng-template>
+</ion-modal>
+
+    </ion-col>
+
+  </ion-row>
+</ion-grid>

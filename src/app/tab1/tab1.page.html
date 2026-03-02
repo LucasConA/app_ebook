@@ -1,23 +1,31 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-title>Adicionar Livro</ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-item>
+  <ion-input placeholder="Título" [(ngModel)]="titulo"></ion-input>
+</ion-item>
 
-<ion-content class="ion-padding">
+<ion-item>
+  <ion-input placeholder="Autor" [(ngModel)]="autor"></ion-input>
+</ion-item>
 
-  <ion-item>
-    <ion-label position="stacked">Título</ion-label>
-    <ion-input [(ngModel)]="titulo"></ion-input>
-  </ion-item>
+<ion-item>
+  <ion-input placeholder="Idioma" [(ngModel)]="idioma"></ion-input>
+</ion-item>
 
-  <ion-item>
-    <ion-label position="stacked">Autor</ion-label>
-    <ion-input [(ngModel)]="autor"></ion-input>
-  </ion-item>
+<ion-item>
+  <ion-input placeholder="Gênero" [(ngModel)]="genero"></ion-input>
+</ion-item>
 
-  <ion-button expand="block" (click)="adicionarLivro()">
-    Salvar
-  </ion-button>
+<ion-item>
+  <ion-input placeholder="Tags (separadas por vírgula)" [(ngModel)]="tags"></ion-input>
+</ion-item>
 
-</ion-content>
+<ion-item>
+  <ion-input placeholder="Link do ebook" [(ngModel)]="link"></ion-input>
+</ion-item>
+
+<ion-item>
+  <input type="file" (change)="onFileSelected($event)" />
+</ion-item>
+
+<ion-button expand="full" (click)="adicionarLivro()">
+  Salvar Livro
+</ion-button>

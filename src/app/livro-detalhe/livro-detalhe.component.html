@@ -1,0 +1,95 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>
+      {{ modoEdicao ? 'Editar Livro' : livro.titulo }}
+    </ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button *ngIf="!modoEdicao" (click)="ativarEdicao()">
+        Editar
+      </ion-button>
+
+      <ion-button (click)="dismiss()">
+        Fechar
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <!-- ===================== -->
+  <!-- MODO VISUALIZAÇÃO -->
+  <!-- ===================== -->
+  <div *ngIf="!modoEdicao">
+
+    <img 
+      *ngIf="livro.capa"
+      [src]="livro.capa"
+      style="width:100%; border-radius:10px; margin-bottom:15px;"
+    />
+
+    <p><strong>Autor:</strong> {{ livro.autor }}</p>
+    <p><strong>Idioma:</strong> {{ livro.idioma }}</p>
+    <p><strong>Gênero:</strong> {{ livro.genero }}</p>
+    <p><strong>Tags:</strong> {{ livro.tags?.join(', ') }}</p>
+
+    <ion-button 
+      *ngIf="livro.link"
+      expand="block"
+      [href]="livro.link"
+      target="_blank">
+      Abrir Ebook
+    </ion-button>
+
+  </div>
+
+
+  <!-- ===================== -->
+  <!-- MODO EDIÇÃO -->
+  <!-- ===================== -->
+  <div *ngIf="modoEdicao">
+
+    <ion-item>
+      <ion-label position="stacked">Título</ion-label>
+      <ion-input [(ngModel)]="livroEditando.titulo"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="stacked">Autor</ion-label>
+      <ion-input [(ngModel)]="livroEditando.autor"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="stacked">Idioma</ion-label>
+      <ion-input [(ngModel)]="livroEditando.idioma"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="stacked">Gênero</ion-label>
+      <ion-input [(ngModel)]="livroEditando.genero"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="stacked">Link</ion-label>
+      <ion-input [(ngModel)]="livroEditando.link"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="stacked">Tags (separadas por vírgula)</ion-label>
+      <ion-input
+        [(ngModel)]="tagsInput"
+      ></ion-input>
+    </ion-item>
+
+    <ion-button expand="block" color="success" (click)="salvar()">
+      Salvar
+    </ion-button>
+
+    <ion-button expand="block" fill="outline" (click)="cancelarEdicao()">
+      Cancelar
+    </ion-button>
+
+  </div>
+
+</ion-content>
