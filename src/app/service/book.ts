@@ -11,6 +11,7 @@ export interface Livro {
   tags: string[];
   link?: string;
   criadoEm: Date;
+  
 }
 
 @Injectable({

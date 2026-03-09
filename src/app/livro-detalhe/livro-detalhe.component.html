@@ -21,29 +21,36 @@
   <!-- ===================== -->
   <!-- MODO VISUALIZAÇÃO -->
   <!-- ===================== -->
-  <div *ngIf="!modoEdicao">
+<div *ngIf="!modoEdicao">
+
+  <div class="detalhe-container">
 
     <img 
       *ngIf="livro.capa"
       [src]="livro.capa"
-      style="width:100%; border-radius:10px; margin-bottom:15px;"
+      class="detalhe-capa"
     />
 
-    <p><strong>Autor:</strong> {{ livro.autor }}</p>
-    <p><strong>Idioma:</strong> {{ livro.idioma }}</p>
-    <p><strong>Gênero:</strong> {{ livro.genero }}</p>
-    <p><strong>Tags:</strong> {{ livro.tags?.join(', ') }}</p>
+    <div class="detalhe-info">
 
-    <ion-button 
-      *ngIf="livro.link"
-      expand="block"
-      [href]="livro.link"
-      target="_blank">
-      Abrir Ebook
-    </ion-button>
+      <p><strong>Autor:</strong> {{ livro.autor }}</p>
+      <p><strong>Idioma:</strong> {{ livro.idioma }}</p>
+      <p><strong>Gênero:</strong> {{ livro.genero }}</p>
+      <p><strong>Tags:</strong> {{ livro.tags?.join(', ') }}</p>
+
+      <ion-button
+        *ngIf="livro.link"
+        size="small"
+        [href]="livro.link"
+        target="_blank">
+        Abrir Ebook
+      </ion-button>
+
+    </div>
 
   </div>
 
+</div>
 
   <!-- ===================== -->
   <!-- MODO EDIÇÃO -->
@@ -77,19 +84,17 @@
 
     <ion-item>
       <ion-label position="stacked">Tags (separadas por vírgula)</ion-label>
-      <ion-input
-        [(ngModel)]="tagsInput"
-      ></ion-input>
+      <ion-input [(ngModel)]="tagsInput"></ion-input>
     </ion-item>
 
     <ion-item>
-    <ion-label position="stacked">URL da Capa</ion-label>
-    <ion-input [(ngModel)]="livroEditando.capa"></ion-input>
-  </ion-item>
+      <ion-label position="stacked">URL da Capa</ion-label>
+      <ion-input [(ngModel)]="livroEditando.capa"></ion-input>
+    </ion-item>
 
-  <div class="capa-wrapper" *ngIf="livroEditando.capa">
-    <img [src]="livroEditando.capa" class="capa-livro" />
-  </div>
+    <div class="capa-wrapper" *ngIf="livroEditando.capa">
+      <img [src]="livroEditando.capa" class="capa-livro" />
+    </div>
 
     <ion-button expand="block" color="success" (click)="salvar()">
       Salvar

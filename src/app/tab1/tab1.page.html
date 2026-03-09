@@ -1,31 +1,84 @@
-<ion-item>
-  <ion-input placeholder="Título" [(ngModel)]="titulo"></ion-input>
-</ion-item>
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Adicionar Livros</ion-title>
+  </ion-toolbar>
+</ion-header>
 
-<ion-item>
-  <ion-input placeholder="Autor" [(ngModel)]="autor"></ion-input>
-</ion-item>
 
-<ion-item>
-  <ion-input placeholder="Idioma" [(ngModel)]="idioma"></ion-input>
-</ion-item>
+<ion-content>
 
-<ion-item>
-  <ion-input placeholder="Gênero" [(ngModel)]="genero"></ion-input>
-</ion-item>
+<ion-card>
 
-<ion-item>
-  <ion-input placeholder="Tags (separadas por vírgula)" [(ngModel)]="tags"></ion-input>
-</ion-item>
+  <ion-card-header>
+    <ion-card-title>Informações do Livro</ion-card-title>
+  </ion-card-header>
 
-<ion-item>
-  <ion-input placeholder="Link do ebook" [(ngModel)]="link"></ion-input>
-</ion-item>
+  <ion-card-content>
 
-<ion-item>
-  <input type="file" (change)="onFileSelected($event)" />
-</ion-item>
+    <ion-item>
+      <ion-input placeholder="Título" [(ngModel)]="titulo"></ion-input>
+    </ion-item>
 
-<ion-button expand="full" (click)="adicionarLivro()">
-  Salvar Livro
-</ion-button>
+    <ion-item>
+      <ion-input placeholder="Autor" [(ngModel)]="autor"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-input placeholder="Idioma" [(ngModel)]="idioma"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-input placeholder="Gênero" [(ngModel)]="genero"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-input placeholder="Tags (separadas por vírgula)" [(ngModel)]="tags"></ion-input>
+    </ion-item>
+
+  </ion-card-content>
+
+</ion-card>
+
+<ion-card>
+
+  <ion-card-header>
+    <ion-card-title>Capa</ion-card-title>
+  </ion-card-header>
+
+  <ion-card-content>
+
+    <ion-button expand="block" color="primary" (click)="fileInput.click()">
+      Escolher imagem
+    </ion-button>
+
+    <input type="file" #fileInput hidden (change)="onFileSelected($event)" />
+
+    <ion-item>
+      <ion-input placeholder="Cole a URL da capa" [(ngModel)]="capaUrl"></ion-input>
+    </ion-item>
+
+    <ion-button expand="block" color="primary" (click)="usarUrl()" [disabled]="!capaUrl">
+      Usar URL
+    </ion-button>
+
+  </ion-card-content>
+
+</ion-card>
+
+<ion-card>
+
+  <ion-card-content>
+
+    <ion-item>
+      <ion-input placeholder="Link do ebook" [(ngModel)]="link"></ion-input>
+    </ion-item>
+
+    <ion-button expand="block" color="primary" (click)="adicionarLivro()">
+      Salvar Livro
+    </ion-button>
+
+  </ion-card-content>
+
+</ion-card>
+
+</ion-content>

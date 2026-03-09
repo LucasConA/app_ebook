@@ -9,6 +9,7 @@ import { BookService, Livro } from '../service/book';
   standalone: true,
   imports: [IonicModule, CommonModule, FormsModule],
   templateUrl: './livro-detalhe.component.html',
+  styleUrls: ['./livro-detalhe.component.scss']
 })
 export class LivroDetalheComponent implements OnInit {
 

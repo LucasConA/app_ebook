@@ -1,0 +1,36 @@
+.upload-container{
+
+  display:flex;
+  height:220px;
+  margin-top:20px;
+  border-radius:10px;
+  overflow:hidden;
+}
+
+
+
+/* DIREITA */
+
+.upload-options{
+
+  width:280px;
+  background:#2f343b;
+
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap:10px;
+
+  padding:20px;
+}
+
+.separator{
+
+  text-align:center;
+  color:#aaa;
+}
+
+ion-button:active {
+  transform: scale(0.96);
+  transition: transform 0.1s ease;
+}

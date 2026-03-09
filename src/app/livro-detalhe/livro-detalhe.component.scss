@@ -1,0 +1,30 @@
+.detalhe-container{
+  display:flex;
+  align-items:flex-start;
+  gap:20px;
+}
+
+.detalhe-capa{
+  width:180px;
+  border-radius:8px;
+}
+
+.detalhe-info{
+  flex:1;
+  max-width:500px;
+  font-size:17px;
+}
+.detalhe-info p{
+  margin:10;
+}
+
+.capa-wrapper{
+  margin-top:15px;
+  display:flex;
+  justify-content:center;
+}
+
+.capa-livro{
+  width:150px;
+  border-radius:10px;
+}
