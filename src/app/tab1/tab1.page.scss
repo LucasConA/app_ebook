@@ -1,10 +1,12 @@
 .upload-container{
 
   display:flex;
-  height:220px;
+  min-height:220px;
   margin-top:20px;
   border-radius:10px;
   overflow:hidden;
+  flex-direction: column;
+  justify-content: flex-start;
 }
 
 
@@ -33,4 +35,16 @@
 ion-button:active {
   transform: scale(0.96);
   transition: transform 0.1s ease;
+}
+ion-card{
+  width:100%;
+}
+
+ion-item{
+  --min-height:50px;
+}
+
+ion-card-content{
+  display:flex;
+  flex-direction:column;
 }
