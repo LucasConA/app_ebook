@@ -34,6 +34,18 @@
 
 /* ---------------- DARK MODE ---------------- */
 
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ion-background-color: #5D576B;
+    --ion-text-color: #F1DEDE;
+    --ion-toolbar-background: #5D576B;
+    --ion-toolbar-color: #F1DEDE;
+    --ion-card-background: #6c667a;
+    --ion-item-background: #6c667a;
+    --ion-item-color: #F1DEDE;
+  }
+}
+
 body.dark {
 
   --ion-background-color: #5D576B;
@@ -94,7 +106,6 @@ ion-button {
 
 }
 
-html, body, ion-app, ion-content {
+html, body {
   height: 100%;
 }
-
