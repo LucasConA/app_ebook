@@ -18,7 +18,7 @@ class InfoTab extends StatelessWidget {
               Icon(
                 Icons.menu_book_rounded,
                 size: 80,
-                color: Colors.blue,
+                color: Color.fromARGB(255, 3, 77, 34),
               ),
               SizedBox(height: 24),
               Text(
@@ -30,7 +30,7 @@ class InfoTab extends StatelessWidget {
               ),
               SizedBox(height: 12),
               Text(
-                'Sua estante de livros digital sincronizada em tempo real com o Supabase.',
+                '',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,
@@ -39,7 +39,7 @@ class InfoTab extends StatelessWidget {
               ),
               SizedBox(height: 32),
               Text(
-                'Versão 1.0.0 (Flutter)',
+                'Versão 1.0.0',
                 style: TextStyle(
                   fontSize: 12,
                   color: Colors.grey,

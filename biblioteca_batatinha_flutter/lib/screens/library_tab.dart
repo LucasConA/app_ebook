@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../models/livro.dart';
-import '../services/supabase_service.dart';
+import '../models/enums/status_leitura.dart';
+import '../controllers/library_controller.dart';
 import 'livro_detalhe_dialog.dart';
 
 class LibraryTab extends StatefulWidget {
@@ -12,65 +13,38 @@ class LibraryTab extends StatefulWidget {
 }
 
 class LibraryTabState extends State<LibraryTab> {
-  List<Livro> _livros = [];
-  String _ordemSelecionada = 'recente';
-  bool _isLoading = false;
+  final LibraryController _controller = LibraryController();
 
   @override
   void initState() {
     super.initState();
-    carregarLivros();
+    _controller.addListener(_onControllerChanged);
+    _controller.carregarLivros();
   }
 
-  Future<void> carregarLivros() async {
-    setState(() {
-      _isLoading = true;
-    });
+  @override
+  void dispose() {
+    _controller.removeListener(_onControllerChanged);
+    _controller.dispose();
+    super.dispose();
+  }
 
-    try {
-      final livros = await SupabaseService.instance.listar();
-      setState(() {
-        _livros = livros;
-        _ordenarLivros();
-      });
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erro ao carregar biblioteca: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+  void _onControllerChanged() {
+    if (mounted) setState(() {});
+
+    if (_controller.erro != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro: ${_controller.erro}'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
-  void _ordenarLivros() {
-    setState(() {
-      switch (_ordemSelecionada) {
-        case 'recente':
-          _livros.sort((a, b) => b.criadoEm.compareTo(a.criadoEm));
-          break;
-        case 'antigo':
-          _livros.sort((a, b) => a.criadoEm.compareTo(b.criadoEm));
-          break;
-        case 'az':
-          _livros.sort((a, b) => a.titulo.toLowerCase().compareTo(b.titulo.toLowerCase()));
-          break;
-        case 'za':
-          _livros.sort((a, b) => b.titulo.toLowerCase().compareTo(a.titulo.toLowerCase()));
-          break;
-      }
-    });
-  }
+  void carregarLivros() => _controller.carregarLivros();
 
-  Future<void> _removerLivro(String id) async {
+  Future<void> _confirmarRemocao(String id) async {
     final confirmar = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -91,25 +65,7 @@ class LibraryTabState extends State<LibraryTab> {
     );
 
     if (confirmar == true) {
-      setState(() {
-        _isLoading = true;
-      });
-      try {
-        await SupabaseService.instance.remover(id);
-        await carregarLivros();
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Erro ao remover: $e'), backgroundColor: Colors.red),
-          );
-        }
-      } finally {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
-        }
-      }
+      _controller.removerLivro(id);
     }
   }
 
@@ -118,9 +74,22 @@ class LibraryTabState extends State<LibraryTab> {
       context: context,
       builder: (context) => LivroDetalheDialog(
         livro: livro,
-        onUpdated: () => carregarLivros(),
+        onUpdated: () => _controller.carregarLivros(),
       ),
     );
+  }
+
+  Color _statusColor(StatusLeitura status) {
+    switch (status) {
+      case StatusLeitura.naoIniciado:
+        return Colors.grey;
+      case StatusLeitura.lido:
+        return const Color(0xFF2E7D32);
+      case StatusLeitura.naFila:
+        return const Color(0xFFC8A04B);
+      case StatusLeitura.larguei:
+        return Colors.red.shade700;
+    }
   }
 
   @override
@@ -131,39 +100,61 @@ class LibraryTabState extends State<LibraryTab> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: carregarLivros,
+            onPressed: () => _controller.carregarLivros(),
           ),
         ],
       ),
-      body: _isLoading
+      body: _controller.isLoading
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
-                // Ordering selector
+                // Sort + Filter bar
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        'Ordenar por',
-                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+                      // Sort dropdown
+                      Expanded(
+                        child: Row(
+                          children: [
+                            const Text(
+                              'Ordenar',
+                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                            ),
+                            const SizedBox(width: 8),
+                            DropdownButton<String>(
+                              value: _controller.ordemSelecionada,
+                              underline: const SizedBox.shrink(),
+                              isDense: true,
+                              onChanged: (v) {
+                                if (v != null) _controller.ordenar(v);
+                              },
+                              items: const [
+                                DropdownMenuItem(value: 'recente', child: Text('Recente')),
+                                DropdownMenuItem(value: 'antigo', child: Text('Antigo')),
+                                DropdownMenuItem(value: 'az', child: Text('A-Z')),
+                                DropdownMenuItem(value: 'za', child: Text('Z-A')),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
-                      DropdownButton<String>(
-                        value: _ordemSelecionada,
-                        onChanged: (newValue) {
-                          if (newValue != null) {
-                            setState(() {
-                              _ordemSelecionada = newValue;
-                              _ordenarLivros();
-                            });
-                          }
-                        },
-                        items: const [
-                          DropdownMenuItem(value: 'recente', child: Text('Mais recente')),
-                          DropdownMenuItem(value: 'antigo', child: Text('Mais antigo')),
-                          DropdownMenuItem(value: 'az', child: Text('Título A-Z')),
-                          DropdownMenuItem(value: 'za', child: Text('Título Z-A')),
+                      // Status filter
+                      DropdownButton<StatusLeitura?>(
+                        value: _controller.filtroStatus,
+                        underline: const SizedBox.shrink(),
+                        isDense: true,
+                        hint: const Text('Status'),
+                        onChanged: (v) => _controller.filtrarPorStatus(v),
+                        items: [
+                          const DropdownMenuItem<StatusLeitura?>(
+                            value: null,
+                            child: Text('Todos'),
+                          ),
+                          ...StatusLeitura.values.map((s) => DropdownMenuItem(
+                                value: s,
+                                child: Text(s.label),
+                              )),
                         ],
                       ),
                     ],
@@ -172,10 +163,10 @@ class LibraryTabState extends State<LibraryTab> {
                 const Divider(height: 1),
                 // Book Grid
                 Expanded(
-                  child: _livros.isEmpty
+                  child: _controller.livros.isEmpty
                       ? const Center(
                           child: Text(
-                            'Nenhum livro cadastrado.',
+                            'Nenhum livro encontrado.',
                             style: TextStyle(fontSize: 16, color: Colors.grey),
                           ),
                         )
@@ -185,11 +176,11 @@ class LibraryTabState extends State<LibraryTab> {
                             crossAxisCount: 3,
                             crossAxisSpacing: 10,
                             mainAxisSpacing: 12,
-                            childAspectRatio: 0.65,
+                            childAspectRatio: 0.55,
                           ),
-                          itemCount: _livros.length,
+                          itemCount: _controller.livros.length,
                           itemBuilder: (context, index) {
-                            final livro = _livros[index];
+                            final livro = _controller.livros[index];
                             return _buildBookGridItem(livro);
                           },
                         ),
@@ -205,7 +196,7 @@ class LibraryTabState extends State<LibraryTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Capa wrapper
+          // Cover
           Expanded(
             child: Card(
               elevation: 4,
@@ -234,12 +225,12 @@ class LibraryTabState extends State<LibraryTab> {
                           'assets/placeholder-book.jpg',
                           fit: BoxFit.cover,
                         ),
-                  // Delete overlay button (top right)
+                  // Delete button
                   Positioned(
                     top: 2,
                     right: 2,
                     child: GestureDetector(
-                      onTap: () => _removerLivro(livro.id),
+                      onTap: () => _confirmarRemocao(livro.id),
                       child: Container(
                         padding: const EdgeInsets.all(4),
                         decoration: const BoxDecoration(
@@ -254,21 +245,45 @@ class LibraryTabState extends State<LibraryTab> {
                       ),
                     ),
                   ),
+                  // Status badge
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 3),
+                      color: _statusColor(livro.status).withValues(alpha: 0.85),
+                      child: Text(
+                        livro.status.label,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
           ),
           const SizedBox(height: 4),
-          // Book Title
+          // Title
           Text(
             livro.titulo,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+          ),
+          // Authors
+          Text(
+            livro.autoresFormatados,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 10, color: Colors.grey[600]),
           ),
         ],
       ),

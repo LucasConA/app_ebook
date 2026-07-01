@@ -1,9 +1,6 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:uuid/uuid.dart';
-import '../models/livro.dart';
-import '../services/supabase_service.dart';
+import '../models/enums/status_leitura.dart';
+import '../controllers/add_book_controller.dart';
 
 class AddBookTab extends StatefulWidget {
   final VoidCallback onBookAdded;
@@ -15,37 +12,68 @@ class AddBookTab extends StatefulWidget {
 }
 
 class _AddBookTabState extends State<AddBookTab> {
-  final _tituloController = TextEditingController();
-  final _autorController = TextEditingController();
-  final _idiomaController = TextEditingController();
-  final _generoController = TextEditingController();
-  final _tagsController = TextEditingController();
-  final _capaUrlController = TextEditingController();
-  final _linkController = TextEditingController();
+  final AddBookController _controller = AddBookController();
 
-  File? _imageFile;
-  final ImagePicker _picker = ImagePicker();
-  bool _isLoading = false;
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(_onControllerChanged);
+  }
 
-  Future<void> _pickImage() async {
-    final XFile? pickedFile = await _picker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 80,
-    );
+  @override
+  void dispose() {
+    _controller.removeListener(_onControllerChanged);
+    _controller.dispose();
+    super.dispose();
+  }
 
-    if (pickedFile != null) {
-      setState(() {
-        _imageFile = File(pickedFile.path);
-        _capaUrlController.clear(); // Clear URL if physical image selected
-      });
+  void _onControllerChanged() {
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _salvar() async {
+    final erro = _controller.validar();
+    if (erro != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(erro), backgroundColor: Colors.red),
+      );
+      return;
+    }
+
+    try {
+      await _controller.salvarLivro();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.check_circle_outline, color: Colors.white),
+                SizedBox(width: 8),
+                Text('Livro adicionado à biblioteca'),
+              ],
+            ),
+            backgroundColor: Colors.blue,
+          ),
+        );
+      }
+
+      widget.onBookAdded();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao salvar livro: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
-  void _useUrl() {
-    if (_capaUrlController.text.trim().isNotEmpty) {
-      setState(() {
-        _imageFile = null; // Clear physical file if URL is loaded
-      });
+  void _usarUrl() {
+    _controller.usarUrl();
+    if (_controller.capaUrlController.text.trim().isNotEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Capa carregada pela URL'),
@@ -55,93 +83,13 @@ class _AddBookTabState extends State<AddBookTab> {
     }
   }
 
-  Future<void> _salvarLivro() async {
-    final titulo = _tituloController.text.trim();
-    final autor = _autorController.text.trim();
-
-    if (titulo.isEmpty || autor.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor, preencha Título e Autor.'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      final id = const Uuid().v4();
-      final tags = _tagsController.text
-          .split(',')
-          .map((t) => t.trim())
-          .where((t) => t.isNotEmpty)
-          .toList();
-
-      final novoLivro = Livro(
-        id: id,
-        titulo: titulo,
-        autor: autor,
-        idioma: _idiomaController.text.trim(),
-        genero: _generoController.text.trim(),
-        tags: tags,
-        link: _linkController.text.trim().isEmpty ? null : _linkController.text.trim(),
-        capa: _capaUrlController.text.trim().isEmpty ? null : _capaUrlController.text.trim(),
-        criadoEm: DateTime.now(),
-      );
-
-      await SupabaseService.instance.adicionar(novoLivro, _imageFile);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Row(
-            children: [
-              Icon(Icons.check_circle_outline, color: Colors.white),
-              SizedBox(width: 8),
-              Text('Livro adicionado à biblioteca'),
-            ],
-          ),
-          backgroundColor: Colors.blue,
-        ),
-      );
-
-      // Clear all fields
-      _tituloController.clear();
-      _autorController.clear();
-      _idiomaController.clear();
-      _generoController.clear();
-      _tagsController.clear();
-      _capaUrlController.clear();
-      _linkController.clear();
-      setState(() {
-        _imageFile = null;
-      });
-
-      widget.onBookAdded();
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erro ao salvar livro: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Adicionar Livros'),
       ),
-      body: _isLoading
+      body: _controller.isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
@@ -163,27 +111,36 @@ class _AddBookTabState extends State<AddBookTab> {
                           ),
                           const SizedBox(height: 8),
                           TextField(
-                            controller: _tituloController,
+                            controller: _controller.tituloController,
                             decoration: const InputDecoration(hintText: 'Título'),
                           ),
+                          const SizedBox(height: 8),
                           TextField(
-                            controller: _autorController,
-                            decoration: const InputDecoration(hintText: 'Autor'),
+                            controller: _controller.autoresController,
+                            decoration: const InputDecoration(
+                              hintText: 'Autores (separados por vírgula)',
+                            ),
                           ),
+                          const SizedBox(height: 8),
                           TextField(
-                            controller: _idiomaController,
+                            controller: _controller.idiomaController,
                             decoration: const InputDecoration(hintText: 'Idioma'),
                           ),
+                          const SizedBox(height: 8),
                           TextField(
-                            controller: _generoController,
+                            controller: _controller.generoController,
                             decoration: const InputDecoration(hintText: 'Gênero'),
                           ),
+                          const SizedBox(height: 8),
                           TextField(
-                            controller: _tagsController,
+                            controller: _controller.tagsController,
                             decoration: const InputDecoration(
                               hintText: 'Tags (separadas por vírgula)',
                             ),
                           ),
+                          const SizedBox(height: 12),
+                          // Status selector
+        
                         ],
                       ),
                     ),
@@ -205,12 +162,12 @@ class _AddBookTabState extends State<AddBookTab> {
                             ),
                           ),
                           const SizedBox(height: 12),
-                          if (_imageFile != null) ...[
+                          if (_controller.imageFile != null) ...[
                             Center(
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(8.0),
                                 child: Image.file(
-                                  _imageFile!,
+                                  _controller.imageFile!,
                                   height: 150,
                                   width: 100,
                                   fit: BoxFit.cover,
@@ -223,12 +180,12 @@ class _AddBookTabState extends State<AddBookTab> {
                             style: ElevatedButton.styleFrom(
                               minimumSize: const Size.fromHeight(45),
                             ),
-                            onPressed: _pickImage,
+                            onPressed: () => _controller.pickImage(),
                             child: const Text('Escolher imagem'),
                           ),
                           const SizedBox(height: 8),
                           TextField(
-                            controller: _capaUrlController,
+                            controller: _controller.capaUrlController,
                             decoration: const InputDecoration(
                               hintText: 'Cole a URL da capa',
                             ),
@@ -238,7 +195,7 @@ class _AddBookTabState extends State<AddBookTab> {
                             style: ElevatedButton.styleFrom(
                               minimumSize: const Size.fromHeight(45),
                             ),
-                            onPressed: _useUrl,
+                            onPressed: _usarUrl,
                             child: const Text('Usar URL'),
                           ),
                         ],
@@ -254,19 +211,19 @@ class _AddBookTabState extends State<AddBookTab> {
                       child: Column(
                         children: [
                           TextField(
-                            controller: _linkController,
+                            controller: _controller.linkController,
                             decoration: const InputDecoration(hintText: 'Link do ebook'),
                           ),
                           const SizedBox(height: 12),
                           ElevatedButton(
-                          onPressed: _salvarLivro,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFC8A04B), // dourado
-                            foregroundColor: Colors.white,
+                            onPressed: _salvar,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFC8A04B),
+                              foregroundColor: Colors.white,
+                            ),
+                            child: const Text('Salvar Livro'),
                           ),
-                          child: const Text('Salvar Livro'),
-                        ),
-                                                ],
+                        ],
                       ),
                     ),
                   ),

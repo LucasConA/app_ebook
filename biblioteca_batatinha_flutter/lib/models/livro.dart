@@ -1,31 +1,39 @@
+import 'enums/status_leitura.dart';
+
 class Livro {
   final String id;
   final String titulo;
-  final String autor;
+  final List<String> autores;
   final String idioma;
   final String genero;
   final List<String> tags;
   final String? link;
-  final String? capa; // Will store the public URL of the cover image
+  final String? capa;
+  final StatusLeitura status;
   final DateTime criadoEm;
 
   Livro({
     required this.id,
     required this.titulo,
-    required this.autor,
+    required this.autores,
     required this.idioma,
     required this.genero,
     required this.tags,
     this.link,
     this.capa,
+    this.status = StatusLeitura.naFila,
     required this.criadoEm,
   });
+
+  String get autoresFormatados => autores.join(', ');
 
   factory Livro.fromJson(Map<String, dynamic> json) {
     return Livro(
       id: json['id'] as String,
       titulo: json['titulo'] as String,
-      autor: json['autor'] as String,
+      autores: json['autores'] != null
+          ? List<String>.from(json['autores'] as List)
+          : <String>[],
       idioma: (json['idioma'] as String?) ?? '',
       genero: (json['genero'] as String?) ?? '',
       tags: json['tags'] != null
@@ -33,6 +41,7 @@ class Livro {
           : <String>[],
       link: json['link'] as String?,
       capa: json['capa'] as String?,
+      status: StatusLeitura.fromValue(json['status'] as String?),
       criadoEm: DateTime.parse(json['criado_em'] as String),
     );
   }
@@ -41,13 +50,40 @@ class Livro {
     return {
       'id': id,
       'titulo': titulo,
-      'autor': autor,
+      'autores': autores,
       'idioma': idioma,
       'genero': genero,
       'tags': tags,
       'link': link,
       'capa': capa,
+      'status': status.value,
       'criado_em': criadoEm.toIso8601String(),
     };
+  }
+
+  Livro copyWith({
+    String? id,
+    String? titulo,
+    List<String>? autores,
+    String? idioma,
+    String? genero,
+    List<String>? tags,
+    String? link,
+    String? capa,
+    StatusLeitura? status,
+    DateTime? criadoEm,
+  }) {
+    return Livro(
+      id: id ?? this.id,
+      titulo: titulo ?? this.titulo,
+      autores: autores ?? this.autores,
+      idioma: idioma ?? this.idioma,
+      genero: genero ?? this.genero,
+      tags: tags ?? this.tags,
+      link: link ?? this.link,
+      capa: capa ?? this.capa,
+      status: status ?? this.status,
+      criadoEm: criadoEm ?? this.criadoEm,
+    );
   }
 }

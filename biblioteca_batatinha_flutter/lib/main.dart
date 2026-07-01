@@ -8,8 +8,8 @@ void main() async {
   // Initialize Supabase.
   // IMPORTANT: Replace with your actual credentials!
   await Supabase.initialize(
-    url: 'https://vaxoaqwrlcmgbvwvrpii.supabase.co',
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZheG9hd3FybGNtZ2J2d3dycGlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIzOTA3MDIsImV4cCI6MjA5Nzk2NjcwMn0.8LmwriVqI_Cy2XBwthI6dv8RrdZ7XcNFrai9CGdAtBw',
+    url: 'https://vaxoawqrlcmgbvwwrpii.supabase.co',
+    publishableKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZheG9hd3FybGNtZ2J2d3dycGlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIzOTA3MDIsImV4cCI6MjA5Nzk2NjcwMn0.8LmwriVqI_Cy2XBwthI6dv8RrdZ7XcNFrai9CGdAtBw',
   );
 
   runApp(const MyApp());

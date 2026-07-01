@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../models/livro.dart';
+import '../models/enums/status_leitura.dart';
 import '../services/supabase_service.dart';
 
 class LivroDetalheDialog extends StatefulWidget {
@@ -24,11 +25,12 @@ class _LivroDetalheDialogState extends State<LivroDetalheDialog> {
   late Livro _livroEditando;
   bool _modoEdicao = false;
   late TextEditingController _tituloCtrl;
-  late TextEditingController _autorCtrl;
+  late TextEditingController _autoresCtrl;
   late TextEditingController _idiomaCtrl;
   late TextEditingController _generoCtrl;
   late TextEditingController _tagsCtrl;
   late TextEditingController _linkCtrl;
+  late StatusLeitura _statusSelecionado;
 
   File? _newImageFile;
   final ImagePicker _picker = ImagePicker();
@@ -43,11 +45,12 @@ class _LivroDetalheDialogState extends State<LivroDetalheDialog> {
 
   void _initControllers() {
     _tituloCtrl = TextEditingController(text: _livroEditando.titulo);
-    _autorCtrl = TextEditingController(text: _livroEditando.autor);
+    _autoresCtrl = TextEditingController(text: _livroEditando.autores.join(', '));
     _idiomaCtrl = TextEditingController(text: _livroEditando.idioma);
     _generoCtrl = TextEditingController(text: _livroEditando.genero);
     _tagsCtrl = TextEditingController(text: _livroEditando.tags.join(', '));
     _linkCtrl = TextEditingController(text: _livroEditando.link ?? '');
+    _statusSelecionado = _livroEditando.status;
   }
 
   Future<void> _pickNewImage() async {
@@ -77,7 +80,7 @@ class _LivroDetalheDialogState extends State<LivroDetalheDialog> {
   }
 
   Future<void> _salvar() async {
-    if (_tituloCtrl.text.trim().isEmpty || _autorCtrl.text.trim().isEmpty) {
+    if (_tituloCtrl.text.trim().isEmpty || _autoresCtrl.text.trim().isEmpty) {
       return;
     }
 
@@ -86,22 +89,26 @@ class _LivroDetalheDialogState extends State<LivroDetalheDialog> {
     });
 
     try {
+      final autores = _autoresCtrl.text
+          .split(',')
+          .map((a) => a.trim())
+          .where((a) => a.isNotEmpty)
+          .toList();
+
       final tags = _tagsCtrl.text
           .split(',')
           .map((t) => t.trim())
           .where((t) => t.isNotEmpty)
           .toList();
 
-      final livroAtualizado = Livro(
-        id: _livroEditando.id,
+      final livroAtualizado = _livroEditando.copyWith(
         titulo: _tituloCtrl.text.trim(),
-        autor: _autorCtrl.text.trim(),
+        autores: autores,
         idioma: _idiomaCtrl.text.trim(),
         genero: _generoCtrl.text.trim(),
         tags: tags,
         link: _linkCtrl.text.trim().isEmpty ? null : _linkCtrl.text.trim(),
-        capa: _livroEditando.capa,
-        criadoEm: _livroEditando.criadoEm,
+        status: _livroEditando.status,
       );
 
       await SupabaseService.instance.atualizar(livroAtualizado, _newImageFile);
@@ -122,6 +129,19 @@ class _LivroDetalheDialogState extends State<LivroDetalheDialog> {
           _isLoading = false;
         });
       }
+    }
+  }
+
+  Color _statusColor(StatusLeitura status) {
+    switch (status) {
+      case StatusLeitura.naoIniciado:
+        return Colors.grey;
+      case StatusLeitura.lido:
+        return const Color(0xFF2E7D32);
+      case StatusLeitura.naFila:
+        return const Color(0xFFC8A04B);
+      case StatusLeitura.larguei:
+        return Colors.red.shade700;
     }
   }
 
@@ -200,9 +220,69 @@ class _LivroDetalheDialogState extends State<LivroDetalheDialog> {
           textAlign: TextAlign.center,
         ),
         Text(
-          'por ${_livroEditando.autor}',
+          'por ${_livroEditando.autoresFormatados}',
           style: TextStyle(fontSize: 16, color: Colors.grey[600]),
           textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 12),
+        // Status badge
+        DropdownButtonFormField<StatusLeitura>(
+          initialValue: _livroEditando.status,
+          decoration: InputDecoration(
+            labelText: 'Status de leitura',
+            labelStyle: const TextStyle(
+              color: Color(0xFF1E4738),
+              fontWeight: FontWeight.w600,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderSide: const BorderSide(
+                color: Color(0xFF1E4738),
+                width: 2,
+              ),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderSide: const BorderSide(
+                color: Color(0xFF1E4738),
+                width: 2,
+              ),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            filled: true,
+            fillColor: const Color(0xFFF6F3ED),
+          ),
+
+          dropdownColor: const Color(0xFFF6F3ED),
+
+          iconEnabledColor: const Color(0xFF1E4738),
+
+          style: const TextStyle(
+            color: Color(0xFF1E4738),
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+          ),
+          items: StatusLeitura.values.map((status) {
+            return DropdownMenuItem(
+              value: status,
+              child: Text(status.label),
+            );
+          }).toList(),
+          onChanged: (novoStatus) async {
+            if (novoStatus == null) return;
+
+            final atualizado = _livroEditando.copyWith(
+              status: novoStatus,
+            );
+
+            await SupabaseService.instance.atualizar(atualizado, null);
+
+            setState(() {
+              _livroEditando = atualizado;
+              _statusSelecionado = novoStatus;
+            });
+
+            widget.onUpdated();
+          },
         ),
         const Divider(height: 32),
         if (_livroEditando.genero.isNotEmpty) ...[
@@ -256,7 +336,10 @@ class _LivroDetalheDialogState extends State<LivroDetalheDialog> {
         ),
         const SizedBox(height: 12),
         TextField(controller: _tituloCtrl, decoration: const InputDecoration(labelText: 'Título')),
-        TextField(controller: _autorCtrl, decoration: const InputDecoration(labelText: 'Autor')),
+        TextField(
+          controller: _autoresCtrl,
+          decoration: const InputDecoration(labelText: 'Autores (separados por vírgula)'),
+        ),
         TextField(controller: _idiomaCtrl, decoration: const InputDecoration(labelText: 'Idioma')),
         TextField(controller: _generoCtrl, decoration: const InputDecoration(labelText: 'Gênero')),
         TextField(
@@ -264,6 +347,31 @@ class _LivroDetalheDialogState extends State<LivroDetalheDialog> {
           decoration: const InputDecoration(labelText: 'Tags (separadas por vírgula)'),
         ),
         TextField(controller: _linkCtrl, decoration: const InputDecoration(labelText: 'Link do ebook')),
+        const SizedBox(height: 16),
+        // Status selector
+        DropdownButtonFormField<StatusLeitura>(
+          initialValue: _statusSelecionado,
+          decoration: const InputDecoration(
+            labelText: 'Status de leitura',
+            border: OutlineInputBorder(),
+          ),
+          items: StatusLeitura.values.map((status) {
+            return DropdownMenuItem(
+              value: status,
+              child: Text(status.label),
+            );
+          }).toList(),
+          onChanged: (novoStatus) {
+            if (novoStatus == null) return;
+
+            setState(() {
+              _statusSelecionado = novoStatus;
+              _livroEditando = _livroEditando.copyWith(
+                status: novoStatus,
+              );
+            });
+          },
+        ),
         const SizedBox(height: 16),
         Row(
           children: [
