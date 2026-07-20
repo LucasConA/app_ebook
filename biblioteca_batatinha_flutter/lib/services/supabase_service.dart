@@ -65,4 +65,44 @@ class SupabaseService {
 
     return _client.storage.from('book-covers').getPublicUrl(filePath);
   }
+
+  Future<List<String>> listarGeneros() async {
+    try {
+      final response = await _client.from('generos').select('nome').order('nome');
+      return (response as List).map((item) => item['nome'] as String).toList();
+    } catch (e) {
+      return [
+        'Ficção contemporânea',
+        'Romance',
+        'Suspense',
+        'Fantasia',
+        'Ficção científica',
+        'Clássicos',
+        'Biografias',
+        'Ficção histórica',
+        'Terror',
+        'Policial',
+        'História',
+        'Filosofia',
+        'Ciência'
+      ]..sort();
+    }
+  }
+
+  Future<List<String>> listarTodasTags() async {
+    try {
+      final response = await _client.from('livros').select('tags');
+      final Set<String> uniqueTags = {};
+      for (var row in (response as List)) {
+        if (row['tags'] != null) {
+          for (var tag in (row['tags'] as List)) {
+            uniqueTags.add(tag.toString().trim());
+          }
+        }
+      }
+      return uniqueTags.toList()..sort();
+    } catch (_) {
+      return [];
+    }
+  }
 }

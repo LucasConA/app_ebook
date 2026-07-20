@@ -21,7 +21,7 @@ class Livro {
     required this.tags,
     this.link,
     this.capa,
-    this.status = StatusLeitura.naFila,
+    this.status = StatusLeitura.indefinido,
     required this.criadoEm,
   });
 

@@ -96,5 +96,7 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: false
-  image_path: "assets/icon/app_icon.png"
+  image_path: "assets/icon/logo_batatinha.png"
   min_sdk_android: 21
+  adaptive_icon_background: "#F6F3ED"
+  adaptive_icon_foreground: "assets/icon/logo_batatinha.png"

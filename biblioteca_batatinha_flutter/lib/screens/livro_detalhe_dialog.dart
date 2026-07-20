@@ -35,12 +35,23 @@ class _LivroDetalheDialogState extends State<LivroDetalheDialog> {
   File? _newImageFile;
   final ImagePicker _picker = ImagePicker();
   bool _isLoading = false;
+  List<String> _generos = [];
 
   @override
   void initState() {
     super.initState();
     _livroEditando = widget.livro;
     _initControllers();
+    _carregarGeneros();
+  }
+
+  Future<void> _carregarGeneros() async {
+    final list = await SupabaseService.instance.listarGeneros();
+    if (mounted) {
+      setState(() {
+        _generos = list;
+      });
+    }
   }
 
   void _initControllers() {
@@ -67,13 +78,25 @@ class _LivroDetalheDialogState extends State<LivroDetalheDialog> {
   }
 
   Future<void> _abrirLink(String url) async {
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
-      if (mounted) {
+    String trimmedUrl = url.trim();
+    if (trimmedUrl.isEmpty) return;
+
+    if (!trimmedUrl.startsWith('http://') && !trimmedUrl.startsWith('https://')) {
+      trimmedUrl = 'https://$trimmedUrl';
+    }
+
+    final uri = Uri.parse(trimmedUrl);
+    try {
+      final success = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Não foi possível abrir o link.')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao abrir o link: $e')),
         );
       }
     }
@@ -132,18 +155,7 @@ class _LivroDetalheDialogState extends State<LivroDetalheDialog> {
     }
   }
 
-  Color _statusColor(StatusLeitura status) {
-    switch (status) {
-      case StatusLeitura.naoIniciado:
-        return Colors.grey;
-      case StatusLeitura.lido:
-        return const Color(0xFF2E7D32);
-      case StatusLeitura.naFila:
-        return const Color(0xFFC8A04B);
-      case StatusLeitura.larguei:
-        return Colors.red.shade700;
-    }
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -226,14 +238,14 @@ class _LivroDetalheDialogState extends State<LivroDetalheDialog> {
         ),
         const SizedBox(height: 12),
         // Status badge
+        const Text(
+          'Status de leitura',
+          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1E4738)),
+        ),
+        const SizedBox(height: 6),
         DropdownButtonFormField<StatusLeitura>(
           initialValue: _livroEditando.status,
           decoration: InputDecoration(
-            labelText: 'Status de leitura',
-            labelStyle: const TextStyle(
-              color: Color(0xFF1E4738),
-              fontWeight: FontWeight.w600,
-            ),
             enabledBorder: OutlineInputBorder(
               borderSide: const BorderSide(
                 color: Color(0xFF1E4738),
@@ -334,26 +346,128 @@ class _LivroDetalheDialogState extends State<LivroDetalheDialog> {
           'Editar Livro',
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
-        const SizedBox(height: 12),
-        TextField(controller: _tituloCtrl, decoration: const InputDecoration(labelText: 'Título')),
+        const SizedBox(height: 20),
+        const Text(
+          'Título',
+          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1E4738)),
+        ),
+        const SizedBox(height: 6),
+        TextField(
+          controller: _tituloCtrl,
+          decoration: const InputDecoration(
+            border: OutlineInputBorder(),
+            filled: true,
+            fillColor: Colors.white,
+          ),
+        ),
+        const SizedBox(height: 16),
+        const Text(
+          'Autores (separados por vírgula)',
+          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1E4738)),
+        ),
+        const SizedBox(height: 6),
         TextField(
           controller: _autoresCtrl,
-          decoration: const InputDecoration(labelText: 'Autores (separados por vírgula)'),
+          decoration: const InputDecoration(
+            border: OutlineInputBorder(),
+            filled: true,
+            fillColor: Colors.white,
+          ),
         ),
-        TextField(controller: _idiomaCtrl, decoration: const InputDecoration(labelText: 'Idioma')),
-        TextField(controller: _generoCtrl, decoration: const InputDecoration(labelText: 'Gênero')),
+        const SizedBox(height: 16),
+        const Text(
+          'Idioma',
+          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1E4738)),
+        ),
+        const SizedBox(height: 6),
+        DropdownButtonFormField<String>(
+          initialValue: ['Português', 'Inglês', 'Espanhol'].contains(_idiomaCtrl.text)
+              ? _idiomaCtrl.text
+              : 'Português',
+          decoration: const InputDecoration(
+            border: OutlineInputBorder(),
+            filled: true,
+            fillColor: Colors.white,
+          ),
+          items: ['Português', 'Inglês', 'Espanhol'].map((lang) {
+            return DropdownMenuItem<String>(
+              value: lang,
+              child: Text(lang),
+            );
+          }).toList(),
+          onChanged: (val) {
+            if (val != null) {
+              _idiomaCtrl.text = val;
+            }
+          },
+        ),
+        const SizedBox(height: 16),
+        const Text(
+          'Gênero',
+          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1E4738)),
+        ),
+        const SizedBox(height: 6),
+        DropdownButtonFormField<String>(
+          initialValue: _generos.contains(_generoCtrl.text)
+              ? _generoCtrl.text
+              : (_generos.isNotEmpty ? _generos.first : null),
+          decoration: const InputDecoration(
+            border: OutlineInputBorder(),
+            filled: true,
+            fillColor: Colors.white,
+          ),
+          items: _generos.map((gen) {
+            return DropdownMenuItem<String>(
+              value: gen,
+              child: Text(gen),
+            );
+          }).toList(),
+          onChanged: (val) {
+            if (val != null) {
+              _generoCtrl.text = val;
+            }
+          },
+        ),
+        const SizedBox(height: 16),
+        const Text(
+          'Tags (separadas por vírgula)',
+          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1E4738)),
+        ),
+        const SizedBox(height: 6),
         TextField(
           controller: _tagsCtrl,
-          decoration: const InputDecoration(labelText: 'Tags (separadas por vírgula)'),
+          decoration: const InputDecoration(
+            border: OutlineInputBorder(),
+            filled: true,
+            fillColor: Colors.white,
+          ),
         ),
-        TextField(controller: _linkCtrl, decoration: const InputDecoration(labelText: 'Link do ebook')),
         const SizedBox(height: 16),
-        // Status selector
+        const Text(
+          'Link do ebook',
+          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1E4738)),
+        ),
+        const SizedBox(height: 6),
+        TextField(
+          controller: _linkCtrl,
+          decoration: const InputDecoration(
+            border: OutlineInputBorder(),
+            filled: true,
+            fillColor: Colors.white,
+          ),
+        ),
+        const SizedBox(height: 16),
+        const Text(
+          'Status de leitura',
+          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1E4738)),
+        ),
+        const SizedBox(height: 6),
         DropdownButtonFormField<StatusLeitura>(
           initialValue: _statusSelecionado,
           decoration: const InputDecoration(
-            labelText: 'Status de leitura',
             border: OutlineInputBorder(),
+            filled: true,
+            fillColor: Colors.white,
           ),
           items: StatusLeitura.values.map((status) {
             return DropdownMenuItem(
@@ -363,7 +477,6 @@ class _LivroDetalheDialogState extends State<LivroDetalheDialog> {
           }).toList(),
           onChanged: (novoStatus) {
             if (novoStatus == null) return;
-
             setState(() {
               _statusSelecionado = novoStatus;
               _livroEditando = _livroEditando.copyWith(
@@ -372,7 +485,7 @@ class _LivroDetalheDialogState extends State<LivroDetalheDialog> {
             });
           },
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 20),
         Row(
           children: [
             Expanded(

@@ -43,3 +43,32 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Supabase Credentials
+lib/core/constants/supabase_config.dart
+
+# Android local keys and properties
+*.jks
+**/android/key.properties
+**/android/local.properties
+
+# iOS build artifacts
+/ios/build/
+/ios/Pods/
+/ios/Podfile.lock
+/ios/.symlinks/
+/ios/Flutter/Flutter.framework
+/ios/Flutter/Flutter.podspec
+*.xcuserdata/
+
+# IDEs and SDK Managers
+.idea/
+.vscode/
+.fvm/flutter_sdk
+
+# Backup and temporary files
+*.bak
+*.disabled
+* copy.*
+*-debug.log
+/coverage/

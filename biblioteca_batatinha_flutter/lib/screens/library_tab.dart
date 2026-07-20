@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/livro.dart';
 import '../models/enums/status_leitura.dart';
 import '../controllers/library_controller.dart';
@@ -81,14 +82,16 @@ class LibraryTabState extends State<LibraryTab> {
 
   Color _statusColor(StatusLeitura status) {
     switch (status) {
-      case StatusLeitura.naoIniciado:
-        return Colors.grey;
-      case StatusLeitura.lido:
-        return const Color(0xFF2E7D32);
+      case StatusLeitura.lendo:
+        return const Color(0xFF2196F3);
       case StatusLeitura.naFila:
         return const Color(0xFFC8A04B);
+      case StatusLeitura.lido:
+        return const Color(0xFF2E7D32);
       case StatusLeitura.larguei:
         return Colors.red.shade700;
+      case StatusLeitura.indefinido:
+        return Colors.grey;
     }
   }
 
@@ -100,7 +103,15 @@ class LibraryTabState extends State<LibraryTab> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
+            tooltip: 'Recarregar',
             onPressed: () => _controller.carregarLivros(),
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Sair da Conta',
+            onPressed: () async {
+              await Supabase.instance.client.auth.signOut();
+            },
           ),
         ],
       ),
@@ -130,11 +141,12 @@ class LibraryTabState extends State<LibraryTab> {
                                 if (v != null) _controller.ordenar(v);
                               },
                               items: const [
-                                DropdownMenuItem(value: 'recente', child: Text('Recente')),
-                                DropdownMenuItem(value: 'antigo', child: Text('Antigo')),
-                                DropdownMenuItem(value: 'az', child: Text('A-Z')),
-                                DropdownMenuItem(value: 'za', child: Text('Z-A')),
-                              ],
+                                 DropdownMenuItem(value: 'recente', child: Text('Recente')),
+                                 DropdownMenuItem(value: 'antigo', child: Text('Antigo')),
+                                 DropdownMenuItem(value: 'az', child: Text('A-Z')),
+                                 DropdownMenuItem(value: 'za', child: Text('Z-A')),
+                                 DropdownMenuItem(value: 'status', child: Text('Status')),
+                               ],
                             ),
                           ],
                         ),
@@ -151,7 +163,7 @@ class LibraryTabState extends State<LibraryTab> {
                             value: null,
                             child: Text('Todos'),
                           ),
-                          ...StatusLeitura.values.map((s) => DropdownMenuItem(
+                          ...StatusLeitura.orderedList.map((s) => DropdownMenuItem(
                                 value: s,
                                 child: Text(s.label),
                               )),

@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 import '../models/livro.dart';
 import '../models/enums/status_leitura.dart';
 import '../services/supabase_service.dart';
+import '../services/google_books_service.dart';
 
 class AddBookController extends ChangeNotifier {
   final SupabaseService _service = SupabaseService.instance;
@@ -12,15 +13,21 @@ class AddBookController extends ChangeNotifier {
 
   final tituloController = TextEditingController();
   final autoresController = TextEditingController();
-  final idiomaController = TextEditingController();
+  final idiomaController = TextEditingController(text: 'Português');
   final generoController = TextEditingController();
   final tagsController = TextEditingController();
   final capaUrlController = TextEditingController();
   final linkController = TextEditingController();
 
   File? _imageFile;
-  StatusLeitura _status = StatusLeitura.naFila;
+  StatusLeitura _status = StatusLeitura.indefinido;
   bool _isLoading = false;
+
+  List<String> _generos = [];
+  List<String> get generos => _generos;
+
+  List<String> _todasTags = [];
+  List<String> get todasTags => _todasTags;
 
   File? get imageFile => _imageFile;
   StatusLeitura get status => _status;
@@ -28,6 +35,52 @@ class AddBookController extends ChangeNotifier {
 
   void setStatus(StatusLeitura novoStatus) {
     _status = novoStatus;
+    notifyListeners();
+  }
+
+  Future<void> carregarDados() async {
+    try {
+      _generos = await _service.listarGeneros();
+      _todasTags = await _service.listarTodasTags();
+      if (_generos.isNotEmpty && generoController.text.isEmpty) {
+        generoController.text = _generos.first;
+      }
+      notifyListeners();
+    } catch (_) {}
+  }
+
+  void preencherComGoogleBook(GoogleBookModel book) {
+    tituloController.text = book.title;
+    autoresController.text = book.authors.join(', ');
+    if (book.genre != null && book.genre!.isNotEmpty) {
+      final match = _generos.firstWhere(
+        (g) => g.toLowerCase() == book.genre!.toLowerCase(),
+        orElse: () => '',
+      );
+      if (match.isNotEmpty) {
+        generoController.text = match;
+      } else {
+        final fallback = _generos.firstWhere(
+          (g) => book.genre!.toLowerCase().contains(g.toLowerCase()) || g.toLowerCase().contains(book.genre!.toLowerCase()),
+          orElse: () => _generos.isNotEmpty ? _generos.first : '',
+        );
+        if (fallback.isNotEmpty) {
+          generoController.text = fallback;
+        }
+      }
+    }
+    if (book.language != null) {
+      idiomaController.text = book.language!;
+    } else {
+      idiomaController.text = 'Português';
+    }
+    if (book.infoLink != null) {
+      linkController.text = book.infoLink!;
+    }
+    if (book.coverUrl != null) {
+      capaUrlController.text = book.coverUrl!;
+      _imageFile = null;
+    }
     notifyListeners();
   }
 
@@ -112,13 +165,17 @@ class AddBookController extends ChangeNotifier {
   void limparFormulario() {
     tituloController.clear();
     autoresController.clear();
-    idiomaController.clear();
-    generoController.clear();
+    idiomaController.text = 'Português';
+    if (_generos.isNotEmpty) {
+      generoController.text = _generos.first;
+    } else {
+      generoController.clear();
+    }
     tagsController.clear();
     capaUrlController.clear();
     linkController.clear();
     _imageFile = null;
-    _status = StatusLeitura.naFila;
+    _status = StatusLeitura.indefinido;
     notifyListeners();
   }
 

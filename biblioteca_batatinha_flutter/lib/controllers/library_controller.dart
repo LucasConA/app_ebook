@@ -90,6 +90,13 @@ class LibraryController extends ChangeNotifier {
         _livrosFiltrados.sort(
             (a, b) => b.titulo.toLowerCase().compareTo(a.titulo.toLowerCase()));
         break;
+      case 'status':
+        _livrosFiltrados.sort((a, b) {
+          final indexA = StatusLeitura.orderedList.indexOf(a.status);
+          final indexB = StatusLeitura.orderedList.indexOf(b.status);
+          return indexA.compareTo(indexB);
+        });
+        break;
     }
   }
 }
