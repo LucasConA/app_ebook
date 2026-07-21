@@ -1,2 +1,111 @@
-// For information on how to create your own theme, please refer to:
-// https://ionicframework.com/docs/theming/
+:root {
+
+  /* cores base */
+
+  --ion-color-primary: #ACBFA4;
+  --ion-color-primary-rgb: 172,191,164;
+  --ion-color-primary-contrast: #000000;
+  --ion-color-primary-shade: #98a892;
+  --ion-color-primary-tint: #b6cbb0;
+
+  --ion-color-secondary: #5D576B;
+  --ion-color-secondary-rgb: 93,87,107;
+
+  /* fundo e texto */
+
+  --ion-background-color: #F1DEDE;
+  --ion-text-color: #5D576B;
+
+  /* header */
+
+  --ion-toolbar-background: #F1DEDE;
+  --ion-toolbar-color: #5D576B;
+
+  /* cards */
+
+  --ion-card-background: #ffffff;
+
+  /* inputs */
+
+  --ion-item-background: #ffffff;
+  --ion-item-color: #5D576B;
+
+}
+
+/* ---------------- DARK MODE ---------------- */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ion-background-color: #5D576B;
+    --ion-text-color: #F1DEDE;
+    --ion-toolbar-background: #5D576B;
+    --ion-toolbar-color: #F1DEDE;
+    --ion-card-background: #6c667a;
+    --ion-item-background: #6c667a;
+    --ion-item-color: #F1DEDE;
+  }
+}
+
+body.dark {
+
+  --ion-background-color: #5D576B;
+  --ion-text-color: #F1DEDE;
+
+  --ion-toolbar-background: #5D576B;
+  --ion-toolbar-color: #F1DEDE;
+
+  --ion-card-background: #6c667a;
+
+  --ion-item-background: #6c667a;
+  --ion-item-color: #F1DEDE;
+
+}
+
+/* ---------------- TAB BAR ---------------- */
+
+ion-tab-bar {
+
+  --background: var(--ion-toolbar-background);
+
+}
+
+ion-tab-button {
+
+  --color: var(--ion-text-color);
+  --color-selected: #ACBFA4;
+
+}
+
+/* ---------------- CARDS ---------------- */
+
+ion-card {
+
+  border-radius: 14px;
+  margin: 16px;
+
+}
+
+/* ---------------- INPUTS ---------------- */
+
+ion-item {
+
+  --background: var(--ion-item-background);
+  --color: var(--ion-item-color);
+
+  border-radius: 10px;
+  margin-bottom: 10px;
+
+}
+
+/* ---------------- BOTÕES ---------------- */
+
+ion-button {
+
+  --background: #ACBFA4;
+  --color: #000000;
+
+}
+
+html, body {
+  height: 100%;
+}

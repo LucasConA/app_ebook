@@ -1,18 +1,40 @@
-import { Component, EnvironmentInjector, inject } from '@angular/core';
-import { IonTabs, IonTabBar, IonTabButton, IonIcon, IonLabel } from '@ionic/angular/standalone';
-import { addIcons } from 'ionicons';
-import { triangle, ellipse, square } from 'ionicons/icons';
+import { Component } from '@angular/core';
+import { IonicModule } from '@ionic/angular';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-tabs',
   templateUrl: 'tabs.page.html',
-  styleUrls: ['tabs.page.scss'],
-  imports: [IonTabs, IonTabBar, IonTabButton, IonIcon, IonLabel],
+  standalone: true,
+  imports: [IonicModule, CommonModule]
 })
 export class TabsPage {
-  public environmentInjector = inject(EnvironmentInjector);
+
+  isDark = false;
 
   constructor() {
-    addIcons({ triangle, ellipse, square });
+
+    const theme = localStorage.getItem('theme');
+
+    if (theme === 'dark') {
+      document.body.classList.add('dark');
+      this.isDark = true;
+    }
+
   }
+
+  toggleTheme() {
+
+    this.isDark = !this.isDark;
+
+    if (this.isDark) {
+      document.body.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.body.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+
+  }
+
 }
