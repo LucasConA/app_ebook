@@ -5,7 +5,6 @@ Uma biblioteca virtual e gerenciador de leitura pessoal moderno desenvolvido em 
 ---
 
 ### Versão Atual: `v1.1.0`
-*(Sempre incremente esta versão ao realizar build de releases ou novas implementações)*
 
 ---
 
