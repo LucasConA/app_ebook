@@ -46,6 +46,8 @@ app.*.map.json
 
 # Supabase Credentials
 lib/core/constants/supabase_config.dart
+config.json
+
 
 # Android local keys and properties
 *.jks
